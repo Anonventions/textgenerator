@@ -1,0 +1,30 @@
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Image Generator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="threeContainer"></div>
+    <div class="smoky-bg"></div>
+    <div class="container">
+        <h1>ANONVENTIONS</h1>
+        <h2>Text-Generator</h2>
+        <textarea id="textInput" placeholder="Type your text here" oninput="updatePreview()"></textarea>
+        <div class="canvas-container">
+            <canvas id="imagePreview" width="400" height="100"></canvas>
+        </div>
+<button onclick="downloadImage()">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="45px" height="45px">
+        <path d="M0 0h24v24H0z" fill="none"/>
+        <path d="M19 9h-4V3H9v6H5l7 7 7-7zm-7 13v-6h2v6h-2zm-7-2h14v2H5z"/>
+    </svg>
+</button>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
+

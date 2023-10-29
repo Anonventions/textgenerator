@@ -1,0 +1,194 @@
+:root {
+  --rotate: 132deg;
+  --container-height: 100px; /* Adjust as needed */
+  --container-width: 600px; /* Adjust as needed */
+}
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap');
+
+body {
+    font-family: 'Orbitron', sans-serif;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    text-align: center;
+    overflow: hidden;
+    background: linear-gradient(-45deg, #000000, #424571, #211367, #21131F);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+}
+
+@keyframes gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+
+.container {
+    max-width: 600px;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.5s forwards;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+h1, h2 {
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-shadow: 0 0 10px #f1dafb, 0 0 20px #f1dafb, 0 0 30px #f1dafb;
+}
+
+h1 {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+  color: #61dafb;
+  font-weight: bold;
+  animation: flicker 3s infinite;
+}
+
+h2 {
+  font-size: 1.5em;
+  margin-bottom: 20px;
+  color: #ffffff;
+  opacity: 0.9;
+}
+
+
+
+@keyframes fadeInDown {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#textInput {
+    width: 100%;
+    height: 100px;
+    margin-bottom: 20px;
+    padding: 10px;
+    font-size: 16px;
+    box-sizing: border-box;
+    border: 1px solid #3a3a3a;
+    background-color: #2c2c2c;
+    color: #ffffff;
+    border-radius: 10px; /* Increased border-radius */
+    outline: none;
+    transition: border 0.3s, box-shadow 0.3s, background-color 0.3s, color 0.3s;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);/
+}
+
+#textInput:focus {
+    border-color: #294699;
+    background-color: #0A0108;
+    color: #e0e0e0;
+    box-shadow: 0 0 0 3px rgba(97, 218, 251, 0.2), inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+
+.canvas-container {
+    margin-bottom: 20px;
+    text-align: center;
+    display: flex; /* Added for better alignment */
+    justify-content: center; /* Center content horizontally */
+    align-items: center; /* Center content vertically */
+}
+
+canvas {
+    border-radius: 4px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.5s 0.6s forwards;
+}
+
+button {
+    background-color: transparent; /* Make button transparent */
+    border: none;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: transform 0.1s;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.5s 0.9s forwards;
+    outline: none;
+}
+
+button:hover {
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+button svg {
+    transition: transform 0.2s;
+}
+
+button:hover svg {
+    transform: scale(1.1);
+}
+
+.container {
+    max-width: 600px;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.5s forwards, glow 5s infinite;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(241, 218, 251, 0.7);
+}
+
+
+@keyframes glow {
+  50% {
+    box-shadow: 0 0 20px 10px rgba(112, 110, 127, 0.7);
+  }
+  75% {
+    box-shadow: 0 0 20px 10px rgba(112, 110, 127, 0.7);
+  }
+}
+
+h1 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    color: #ffffff;
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: fadeInDown 0.5s 0.3s forwards;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+@keyframes flicker {
+    0%, 100% {
+        box-shadow: 0 0 10px #61dafb, 0 0 20px #61dafb, 0 0 30px #61dafb;
+    }
+    50% {
+        box-shadow: 0 0 20px #61dafb, 0 0 40px #61dafb, 0 0 60px #61dafb;
+    }
+}
