@@ -134,7 +134,7 @@ canvas {
 }
 
 button {
-    background-color: transparent;
+    background-color: transparent; /* Make button transparent */
     border: none;
     cursor: pointer;
     border-radius: 50%;
@@ -160,6 +160,49 @@ button svg {
 button:hover svg {
     transform: scale(1.1);
 }
+        .font-selector-container {
+            max-width: 600px;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            margin-top: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(241, 218, 251, 0.7);
+            text-align: center;
+            animation: fadeInUp 0.5s forwards;
+        }
+
+        .font-selector {
+            margin: 0;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #3a3a3a;
+            background-color: #2c2c2c;
+            color: #ffffff;
+            outline: none;
+            transition: border 0.3s, box-shadow 0.3s, background-color 0.3s, color 0.3s;
+        }
+
+        .font-selector:hover {
+            border-color: #294699;
+            background-color: #1a1a1a;
+        }
+
+        .font-selector:focus {
+            border-color: #294699;
+            background-color: #0A0108;
+            color: #e0e0e0;
+            box-shadow: 0 0 0 3px rgba(97, 218, 251, 0.2);
+        }
+
+#fontInput {
+    padding: 5px;
+    font-size: 16px;
+    border-radius: 5px;
+}
 
 .container {
     max-width: 600px;
@@ -169,7 +212,7 @@ button:hover svg {
     opacity: 0;
     transform: translateY(20px);
     animation: fadeInUp 0.5s forwards, glow 5s infinite;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.2);
     border-radius: 10px;
     backdrop-filter: blur(5px);
     border: 1px solid rgba(241, 218, 251, 0.7);
@@ -184,7 +227,15 @@ button:hover svg {
     box-shadow: 0 0 20px 10px rgba(112, 110, 127, 0.7);
   }
 }
+.content-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 
+.container, .font-selector-container {
+    margin-bottom: 20px;
+}
 h1 {
     font-size: 2.5em;
     margin-bottom: 20px;
@@ -207,10 +258,23 @@ h1 {
     </style>
 </head>
 <body>
- 
-    <canvas id="downloadCanvas" style="display: none;"></canvas>
+  <div class="content-wrapper">
+   <div class="container">
+    <div class="font-selector-container">
+        <label for="fontInput" class="font-selector-label">Choose a Font:</label>
+        <select id="fontInput" class="font-selector" onchange="updateFont()">
+            <option value="default">Default</option>
+            <option value="default2">Simple</option>
+            <option value="default3">Clean</option>
+            <option value="default4">Fancy</option>
+            <option value="default5">Gothic</option>
+            <option value="default6">Gothic, lowercase</option>
+          </select>
+</div>
+  <canvas id="downloadCanvas" style="display: none;"></canvas>
     <div id="threeContainer"></div>
     <div class="smoky-bg"></div>
+  
     <div class="container">
         <h1>ANONVENTIONS</h1>
         <h2>Text-Generator</h2>
@@ -226,20 +290,43 @@ h1 {
         </button>
     </div>
     <script>
-const alphabetPath = "https://cdn.jsdelivr.net/gh/DCUGITHUBZONE/bitmap_image_to_text@main/alphabet/";
+const fonts = {
+    default: "https://cdn.jsdelivr.net/gh/DCUGITHUBZONE/bitmap_image_to_text@main/alphabet/",
+    default2: 
+  "https://cdn.jsdelivr.net/gh/DCUGITHUBZONE/bitmap_image_to_text@main/alphabet2/",
+    default3: 
+  "https://cdn.jsdelivr.net/gh/DCUGITHUBZONE/bitmap_image_to_text@main/alphabet3/",
+    default4: 
+  "https://cdn.jsdelivr.net/gh/DCUGITHUBZONE/bitmap_image_to_text@main/alphabet4/",
+    default5: 
+  "https://cdn.jsdelivr.net/gh/DCUGITHUBZONE/bitmap_image_to_text@main/alphabet5/",
+    default6: 
+  "https://cdn.jsdelivr.net/gh/DCUGITHUBZONE/bitmap_image_to_text@main/alphabet6/",
+    // Add more fonts here as you want
+};
+let currentFont = 'default';
 
 async function loadImage(letter) {
-    if (imageCache[letter]) {
-        return imageCache[letter];
+    const cacheKey = `${currentFont}-${letter}`;
+    if (imageCache[cacheKey]) {
+        return imageCache[cacheKey];
     }
     return new Promise((resolve, reject) => {
         const img = new Image();
-        img.crossOrigin = 'anonymous';  // Add this line
+        img.crossOrigin = 'anonymous';
         img.onload = () => resolve(img);
         img.onerror = () => reject(new Error(`Failed to load image for letter: ${letter}`));
-        img.src = `${alphabetPath}${letter.toLowerCase()}.png`;
+        img.src = `${fonts[currentFont]}${letter.toLowerCase()}.png`;
     });
 }
+function updateFont() {
+    const fontInput = document.getElementById('fontInput');
+    currentFont = fontInput.value;
+    imageCache = {}; // Clear the image cache
+    updatePreview();
+}
+
+
 
 async function generateDownloadImage(text) {
     const canvas = document.getElementById('downloadCanvas');
@@ -291,7 +378,7 @@ async function generateImage(text, canvas, isDownload = false) {
                 ctx.drawImage(img, x, 0);
                 x += img.width;
             } else {
-                const maxHeight = 10;
+                const maxHeight = 10; // Adjust as needed
                 const aspectRatio = img.width / img.height;
                 const width = maxHeight * aspectRatio;
                 ctx.drawImage(img, x, 0, width, maxHeight);
