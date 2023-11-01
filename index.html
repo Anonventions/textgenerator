@@ -1,4 +1,3 @@
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -116,7 +115,7 @@ h2 {
 
 .canvas-container {
     width: 400px;
-    height: 100px;
+    height: 150px;
     overflow: hidden;
     margin-bottom: 20px;
     text-align: center;
@@ -228,6 +227,7 @@ button:hover svg {
   }
 }
 .content-wrapper {
+    width: 200%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -255,11 +255,34 @@ h1 {
         box-shadow: 0 0 20px #61dafb, 0 0 40px #61dafb, 0 0 60px #61dafb;
     }
 }
+
+        .slider-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .slider-label {
+            margin-right: 10px;
+            font-size: 16px;
+            color: #ffffff;
+        }
+
+        .slider {
+            width: 300px;
+        }
+     
     </style>
 </head>
 <body>
+
   <div class="content-wrapper">
    <div class="container">
+               <div class="slider-container">
+        <label for="spacingInput" class="slider-label">LETTER SPACING:</label>
+        <input type="range" min="0" max="150" value="10" class="slider" id="spacingInput" oninput="updateSpacing()">
+    </div>
     <div class="font-selector-container">
         <label for="fontInput" class="font-selector-label">Choose a Font:</label>
         <select id="fontInput" class="font-selector" onchange="updateFont()">
@@ -269,6 +292,8 @@ h1 {
             <option value="default4">Fancy</option>
             <option value="default5">Gothic</option>
             <option value="default6">Gothic, lowercase</option>
+            <option value="default7">New-Simple</option>
+            <option value="default8">Futuristic</option>
           </select>
 </div>
   <canvas id="downloadCanvas" style="display: none;"></canvas>
@@ -302,7 +327,10 @@ const fonts = {
   "https://cdn.jsdelivr.net/gh/DCUGITHUBZONE/bitmap_image_to_text@main/alphabet5/",
     default6: 
   "https://cdn.jsdelivr.net/gh/DCUGITHUBZONE/bitmap_image_to_text@main/alphabet6/",
-    // Add more fonts here as you want
+    default7: 
+  "https://cdn.jsdelivr.net/gh/DCUGITHUBZONE/bitmap_image_to_text@main/alphabet7/",
+    default8: 
+  "https://cdn.jsdelivr.net/gh/DCUGITHUBZONE/bitmap_image_to_text@main/alphabet8/"
 };
 let currentFont = 'default';
 
@@ -319,13 +347,13 @@ async function loadImage(letter) {
         img.src = `${fonts[currentFont]}${letter.toLowerCase()}.png`;
     });
 }
+      
 function updateFont() {
     const fontInput = document.getElementById('fontInput');
     currentFont = fontInput.value;
     imageCache = {}; // Clear the image cache
     updatePreview();
 }
-
 
 
 async function generateDownloadImage(text) {
@@ -347,42 +375,48 @@ async function generateDownloadImage(text) {
 
 
 
-async function generateImage(text, canvas, isDownload = false) {
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let letterSpacing = 10;
 
-    let x = 0;
-    const spaceWidth = 10;
-
-    if (isDownload) {
-        let totalWidth = 0;
-        for (const letter of text) {
-            if (letter === ' ') {
-                totalWidth += spaceWidth;
-            } else if (letter.match(/[a-zA-Z]/)) {
-                const img = await loadImage(letter);
-                totalWidth += img.width;
-            }
+        function updateSpacing() {
+            const spacingInput = document.getElementById('spacingInput');
+            letterSpacing = parseInt(spacingInput.value, 10);
+            updatePreview();
         }
-        canvas.width = totalWidth;
-        canvas.height = 100;
-    }
 
+        async function generateImage(text, canvas, isDownload = false) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    for (const letter of text) {
-        if (letter === ' ') {
-            x += spaceWidth;
-        } else if (letter.match(/[a-zA-Z]/)) {
-            const img = await loadImage(letter);
+            let x = 0;
+
             if (isDownload) {
-                ctx.drawImage(img, x, 0);
-                x += img.width;
-            } else {
-                const maxHeight = 10; // Adjust as needed
-                const aspectRatio = img.width / img.height;
-                const width = maxHeight * aspectRatio;
-                ctx.drawImage(img, x, 0, width, maxHeight);
-                x += width;
+                let totalWidth = 0;
+                for (const letter of text) {
+                    if (letter === ' ') {
+                        totalWidth += letterSpacing;
+                    } else if (letter.match(/[a-zA-Z]/)) {
+                        const img = await loadImage(letter);
+                        totalWidth += img.width + letterSpacing;
+                    }
+                }
+                canvas.width = totalWidth;
+                canvas.height = 100;
+            }
+
+            for (const letter of text) {
+                if (letter === ' ') {
+                    x += letterSpacing;
+                } else if (letter.match(/[a-zA-Z]/)) {
+                    const img = await loadImage(letter);
+                    if (isDownload) {
+                        ctx.drawImage(img, x, 0);
+                        x += img.width + letterSpacing;
+                    } else {
+                        const maxHeight = 20; // Adjust as needed
+                        const aspectRatio = img.width / img.height;
+                        const width = maxHeight * aspectRatio;
+                        ctx.drawImage(img, x, 0, width, maxHeight);
+                        x += width + letterSpacing;
             }
         }
     }
