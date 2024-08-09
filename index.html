@@ -239,7 +239,7 @@
         });
 
         let currentFont = 'default1';
-        const imageCache = {};
+        let imageCache = {};
 
         async function loadImage(letter) {
             const cacheKey = `${currentFont}-${letter}`;
@@ -249,7 +249,10 @@
             return new Promise((resolve, reject) => {
                 const img = new Image();
                 img.crossOrigin = 'anonymous';
-                img.onload = () => resolve(img);
+                img.onload = () => {
+                    imageCache[cacheKey] = img;
+                    resolve(img);
+                };
                 img.onerror = () => reject(new Error(`Failed to load image for letter: ${letter}`));
                 img.src = `${fonts[currentFont]}${letter.toLowerCase()}.png`;
             });
@@ -272,14 +275,29 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             let x = 0;
+            let totalWidth = 0;
+            let maxHeight = 0;
+
+            // First pass: calculate total width and max height
             for (const letter of text) {
                 if (letter.match(/[a-zA-Z]/)) {
                     const img = await loadImage(letter);
-                    const maxHeight = 20; // Adjust as needed
-                    const aspectRatio = img.width / img.height;
-                    const width = maxHeight * aspectRatio;
-                    ctx.drawImage(img, x, 0, width, maxHeight);
-                    x += width + 5; // Adjust spacing
+                    totalWidth += img.width + 5; // Adjust spacing
+                    maxHeight = Math.max(maxHeight, img.height);
+                }
+            }
+
+            // Set canvas size to match the text
+            canvas.width = totalWidth;
+            canvas.height = maxHeight;
+
+            // Second pass: draw the images
+            x = 0;
+            for (const letter of text) {
+                if (letter.match(/[a-zA-Z]/)) {
+                    const img = await loadImage(letter);
+                    ctx.drawImage(img, x, 0, img.width, img.height);
+                    x += img.width + 5; // Adjust spacing
                 }
             }
         }
