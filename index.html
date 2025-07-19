@@ -4,313 +4,234 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text Image Generator</title>
-    <style>
-        :root {
-            --rotate: 132deg;
-            --container-height: 100px;
-            --container-width: 600px;
+    <meta name="description" content="Professional bitmap text to image generator with modern features, dark/light themes, and multiple export formats">
+    <meta name="keywords" content="text generator, bitmap fonts, image generator, text to image, pixel fonts">
+    <meta name="author" content="Anonventions">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#61dafb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TextGen">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Text Image Generator - Professional Bitmap Fonts">
+    <meta property="og:description" content="Create stunning bitmap text images with 29 unique fonts, real-time preview, and multiple export formats">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="./">
+    <meta property="og:image" content="https://github.com/user-attachments/assets/07b7adce-bc40-46ed-a5cb-8f095821c8ff">
+    
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Text Image Generator">
+    <meta name="twitter:description" content="Professional bitmap text to image generator">
+    <meta name="twitter:image" content="https://github.com/user-attachments/assets/07b7adce-bc40-46ed-a5cb-8f095821c8ff">
+    
+    <title>Text Image Generator - Professional Bitmap Fonts</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzYxZGFmYiIvPgo8cGF0aCBkPSJNOCAxMEgxNlYxOEg4VjEwWiIgZmlsbD0iIzAwMCIvPgo8L3N2Zz4K">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="./assets/css/styles.css">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="./assets/js/main.js" as="script">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" as="style">
+    
+    <!-- Schema.org structured data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Text Image Generator",
+        "description": "Professional bitmap text to image generator with modern features",
+        "url": "./",
+        "applicationCategory": "GraphicsApplication",
+        "operatingSystem": "Any",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "creator": {
+            "@type": "Organization",
+            "name": "Anonventions"
         }
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap');
-
-        body {
-            font-family: 'Orbitron', sans-serif;
-            color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            text-align: center;
-            overflow: hidden;
-            background: linear-gradient(-45deg, #000000, #424571, #211367, #21131F);
-            background-size: 400% 400%;
-            animation: gradient 15s ease infinite;
-        }
-
-        @keyframes gradient {
-            0% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
-            100% {
-                background-position: 0% 50%;
-            }
-        }
-
-        .container {
-            max-width: 600px;
-            width: 100%;
-            padding: 20px;
-            box-sizing: border-box;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 0.5s forwards;
-            background-color: rgba(0, 0, 0, 0.5);
-            border-radius: 10px;
-        }
-
-        @keyframes fadeInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        h1, h2 {
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            text-shadow: 0 0 10px #f1dafb, 0 0 20px #f1dafb, 0 0 30px #f1dafb;
-        }
-
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            color: #61dafb;
-            font-weight: bold;
-            animation: flicker 3s infinite;
-        }
-
-        h2 {
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            color: #ffffff;
-            opacity: 0.9;
-        }
-
-        #textInput {
-            width: 100%;
-            height: 100px;
-            margin-bottom: 20px;
-            padding: 10px;
-            font-size: 16px;
-            box-sizing: border-box;
-            border: 1px solid #3a3a3a;
-            background-color: #2c2c2c;
-            color: #ffffff;
-            border-radius: 10px;
-            outline: none;
-            transition: border 0.3s, box-shadow 0.3s, background-color 0.3s, color 0.3s;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-        }
-
-        #textInput:focus {
-            border-color: #294699;
-            background-color: #0A0108;
-            color: #e0e0e0;
-            box-shadow: 0 0 0 3px rgba(97, 218, 251, 0.2), inset 0 0 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .canvas-container {
-            width: 400px;
-            height: 150px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        canvas {
-            border-radius: 4px;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 0.5s 0.6s forwards;
-        }
-
-        button {
-            background-color: transparent;
-            border: none;
-            cursor: pointer;
-            border-radius: 50%;
-            transition: transform 0.1s;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 0.5s 0.9s forwards;
-            outline: none;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-        }
-
-        button:active {
-            transform: translateY(1px);
-        }
-
-        button svg {
-            transition: transform 0.2s;
-        }
-
-        button:hover svg {
-            transform: scale(1.1);
-        }
-
-        .font-selector-container {
-            max-width: 600px;
-            width: 100%;
-            padding: 20px;
-            box-sizing: border-box;
-            margin-top: 20px;
-            background-color: rgba(0, 0, 0, 0.7);
-            border-radius: 10px;
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(241, 218, 251, 0.7);
-            text-align: center;
-            animation: fadeInUp 0.5s forwards;
-        }
-
-        .font-selector {
-            margin: 0;
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 5px;
-            border: 1px solid #3a3a3a;
-            background-color: #2c2c2c;
-            color: #ffffff;
-            outline: none;
-            transition: border 0.3s, box-shadow 0.3s, background-color 0.3s, color 0.3s;
-        }
-
-        .font-selector:hover {
-            border-color: #294699;
-            background-color: #1a1a1a;
-        }
-
-        .font-selector:focus {
-            border-color: #294699;
-            background-color: #0A0108;
-            color: #e0e0e0;
-            box-shadow: 0 0 0 3px rgba(97, 218, 251, 0.2);
-        }
-    </style>
+    }
+    </script>
 </head>
 <body>
     <div class="content-wrapper">
+        <!-- Letter spacing control -->
         <div class="container">
             <div class="slider-container">
                 <label for="spacingInput" class="slider-label">LETTER SPACING:</label>
-                <input type="range" min="0" max="150" value="10" class="slider" id="spacingInput" oninput="updateSpacing()">
+                <input type="range" min="0" max="150" value="10" class="slider" id="spacingInput">
             </div>
-            <div class="font-selector-container">
-                <label for="fontInput" class="font-selector-label">Choose a Font:</label>
-                <select id="fontInput" class="font-selector" onchange="updateFont()"></select>
-            </div>
-            <canvas id="downloadCanvas" style="display: none;"></canvas>
-            <div id="threeContainer"></div>
-            <div class="smoky-bg"></div>
+        </div>
 
-            <div class="container">
-                <h1>ANONVENTIONS</h1>
-                <h2>Text-Generator</h2>
-                <textarea id="textInput" placeholder="Type your text here" oninput="updatePreview()"></textarea>
-                <div class="canvas-container">
-                    <canvas id="imagePreview" width="400" height="100"></canvas>
-                </div>
-                <button onclick="downloadImage()">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="45px" height="45px">
-                        <path d="M0 0h24v24H0z" fill="none"/>
-                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zm-7 13v-6h2v6h-2zm-7-2h14v2H5z"/>
-                    </svg>
-                </button>
+        <!-- Font selector -->
+        <div class="font-selector-container">
+            <label for="fontInput" class="font-selector-label">Choose a Font:</label>
+            <select id="fontInput" class="font-selector" aria-label="Select font style"></select>
+        </div>
+
+        <!-- Main content -->
+        <div class="container">
+            <h1>ANONVENTIONS</h1>
+            <h2>Text-Generator</h2>
+            
+            <div class="control-group">
+                <label for="textInput" class="control-label">Enter your text:</label>
+                <textarea 
+                    id="textInput" 
+                    placeholder="Type your text here..." 
+                    aria-describedby="textInputHelp"
+                    spellcheck="false"
+                    autocomplete="off"
+                ></textarea>
+                <small id="textInputHelp" class="sr-only">Enter text to generate bitmap image</small>
+            </div>
+            
+            <div class="canvas-container" role="img" aria-label="Generated text preview">
+                <canvas id="imagePreview" width="400" height="100" aria-hidden="true"></canvas>
+            </div>
+            
+            <div class="button-group">
+                <!-- Download buttons will be added by JavaScript -->
             </div>
         </div>
     </div>
+
+    <!-- Hidden canvas for downloads -->
+    <canvas id="downloadCanvas" style="display: none;" aria-hidden="true"></canvas>
+
+    <!-- Install prompt for PWA -->
+    <div id="installPrompt" class="install-prompt" style="display: none;">
+        <div class="install-content">
+            <h3>Install Text Generator</h3>
+            <p>Install this app on your device for a better experience!</p>
+            <div class="install-buttons">
+                <button id="installButton" class="install-btn">Install</button>
+                <button id="dismissInstall" class="install-btn secondary">Not now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen reader announcements -->
+    <div id="announcements" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+
+    <!-- Scripts -->
+    <script src="./assets/js/main.js"></script>
+    
+    <!-- PWA Registration -->
     <script>
-        const fonts = {};
-        for (let i = 2; i <= 30; i++) {
-            fonts[`default${i}`] = `https://cdn.jsdelivr.net/gh/Anonventions/textgenerator@main/alphabet${i}/`;
+        // Register service worker for PWA functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('./sw.js');
+                    console.log('ServiceWorker registered:', registration.scope);
+                    
+                    // Handle service worker updates
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // Show update available notification
+                                showUpdateNotification();
+                            }
+                        });
+                    });
+                } catch (error) {
+                    console.log('ServiceWorker registration failed:', error);
+                }
+            });
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const selectElement = document.getElementById('fontInput');
-            Object.keys(fonts).forEach((key, index) => {
-                const option = document.createElement('option');
-                option.value = key;
-                option.text = `Font ${index + 1}`;
-                selectElement.appendChild(option);
-            });
+        // PWA install prompt
+        let deferredPrompt;
+        const installPrompt = document.getElementById('installPrompt');
+        const installButton = document.getElementById('installButton');
+        const dismissButton = document.getElementById('dismissInstall');
 
-            selectElement.value = 'default1'; // Set initial selection
-            updateFont(); // Initialize with the default font
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install prompt if not dismissed before
+            if (!localStorage.getItem('installDismissed')) {
+                setTimeout(() => {
+                    installPrompt.style.display = 'block';
+                }, 3000);
+            }
         });
 
-        let currentFont = 'default1';
-        let imageCache = {};
-
-        async function loadImage(letter) {
-            const cacheKey = `${currentFont}-${letter}`;
-            if (imageCache[cacheKey]) {
-                return imageCache[cacheKey];
-            }
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                img.onload = () => {
-                    imageCache[cacheKey] = img;
-                    resolve(img);
-                };
-                img.onerror = () => reject(new Error(`Failed to load image for letter: ${letter}`));
-                img.src = `${fonts[currentFont]}${letter.toLowerCase()}.png`;
+        if (installButton) {
+            installButton.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log('Install prompt outcome:', outcome);
+                    deferredPrompt = null;
+                    installPrompt.style.display = 'none';
+                }
             });
         }
 
-        function updateFont() {
-            const fontInput = document.getElementById('fontInput');
-            currentFont = fontInput.value;
-            imageCache = {}; // Clear the image cache
-            updatePreview();
+        if (dismissButton) {
+            dismissButton.addEventListener('click', () => {
+                installPrompt.style.display = 'none';
+                localStorage.setItem('installDismissed', 'true');
+            });
         }
 
-        async function updatePreview() {
-            const textInput = document.getElementById('textInput');
-            const canvas = document.getElementById('imagePreview');
-            await generateImage(textInput.value, canvas);
+        function showUpdateNotification() {
+            const toast = document.createElement('div');
+            toast.className = 'toast-message toast-info';
+            toast.innerHTML = `
+                <span>New version available!</span>
+                <button onclick="location.reload()" style="margin-left: 10px; padding: 5px 10px; border: none; border-radius: 3px; background: white; color: #339af0; cursor: pointer;">Update</button>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 10000);
         }
 
-        async function generateImage(text, canvas, isDownload = false) {
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            let x = 0;
-            let totalWidth = 0;
-            let maxHeight = 0;
-
-            // First pass: calculate total width and max height
-            for (const letter of text) {
-                if (letter.match(/[a-zA-Z]/)) {
-                    const img = await loadImage(letter);
-                    totalWidth += img.width + 5; // Adjust spacing
-                    maxHeight = Math.max(maxHeight, img.height);
+        // Analytics and performance monitoring
+        window.addEventListener('load', () => {
+            // Track performance metrics
+            if ('performance' in window) {
+                const perfData = performance.getEntriesByType('navigation')[0];
+                if (perfData) {
+                    console.log('Page load metrics:', {
+                        loadTime: Math.round(perfData.loadEventEnd - perfData.loadEventStart),
+                        domReady: Math.round(perfData.domContentLoadedEventEnd - perfData.fetchStart),
+                        firstPaint: Math.round(performance.getEntriesByName('first-paint')[0]?.startTime || 0),
+                        firstContentfulPaint: Math.round(performance.getEntriesByName('first-contentful-paint')[0]?.startTime || 0)
+                    });
                 }
             }
+        });
 
-            // Set canvas size to match the text
-            canvas.width = totalWidth;
-            canvas.height = maxHeight;
-
-            // Second pass: draw the images
-            x = 0;
-            for (const letter of text) {
-                if (letter.match(/[a-zA-Z]/)) {
-                    const img = await loadImage(letter);
-                    ctx.drawImage(img, x, 0, img.width, img.height);
-                    x += img.width + 5; // Adjust spacing
+        // Handle app shortcuts
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('action') === 'download-png') {
+            // Focus text input for quick use
+            window.addEventListener('load', () => {
+                const textInput = document.getElementById('textInput');
+                if (textInput) {
+                    textInput.focus();
                 }
-            }
-        }
-
-        async function downloadImage() {
-            const textInput = document.getElementById('textInput');
-            const canvas = document.getElementById('downloadCanvas');
-            await generateImage(textInput.value, canvas, true);
-            const image = canvas.toDataURL("image/png");
-            const link = document.createElement('a');
-            link.download = 'text-image.png';
-            link.href = image;
-            link.click();
+            });
         }
     </script>
 </body>

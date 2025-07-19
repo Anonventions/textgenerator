@@ -1,0 +1,58 @@
+{
+  "name": "Text Image Generator",
+  "short_name": "TextGen",
+  "description": "Professional bitmap text to image generator with modern features",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#61dafb",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "graphics", "utilities"],
+  "lang": "en-US",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iMjQiIGZpbGw9InVybCgjZ3JhZGllbnQwX2xpbmVhcl8xXzEpIi8+CjxwYXRoIGQ9Ik00OCA2NEg4MFY5Nkg0OFY2NFoiIGZpbGw9IiM2MWRhZmIiLz4KPHA+PC9wYXRoPgo8L3N2Zz4K",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iNjQiIGZpbGw9InVybCgjZ3JhZGllbnQwX2xpbmVhcl8xXzEpIi8+CjxwYXRoIGQ9Ik0xMjggMTcySDE5MlYyNTZIMTI4VjE3MloiIGZpbGw9IiM2MWRhZmIiLz4KPHA+PC9wYXRoPgo8L3N2Zz4K",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://github.com/user-attachments/assets/07b7adce-bc40-46ed-a5cb-8f095821c8ff",
+      "sizes": "800x600",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Text Image Generator interface"
+    }
+  ],
+  "features": [
+    "Bitmap font text generation",
+    "Multiple export formats (PNG, SVG, WebP)",
+    "Real-time preview",
+    "Dark/light theme",
+    "Keyboard shortcuts",
+    "Offline functionality"
+  ],
+  "shortcuts": [
+    {
+      "name": "Download PNG",
+      "short_name": "PNG",
+      "description": "Download current text as PNG",
+      "url": "./?action=download-png",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHA+PC9wYXRoPgo8L3N2Zz4K",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}
