@@ -111,6 +111,10 @@ class TextImageGenerator {
                     ${this.getImageIcon()}
                     WebP
                 </button>
+                <button class="export-btn secondary" title="Export as GIF" aria-label="Export as GIF">
+                    ${this.getGifIcon()}
+                    GIF
+                </button>
             `;
             
             // Add event listeners
@@ -118,6 +122,7 @@ class TextImageGenerator {
             buttons[0].addEventListener('click', () => this.downloadImage('png'));
             buttons[1].addEventListener('click', () => this.downloadImage('svg'));
             buttons[2].addEventListener('click', () => this.downloadImage('webp'));
+            buttons[3].addEventListener('click', () => this.showGifPreviewDialog());
         }
     }
 
@@ -658,6 +663,306 @@ class TextImageGenerator {
             <path d="M0 0h24v24H0z" fill="none"/>
             <path d="M19 9h-4V3H9v6H5l7 7 7-7zm-7 13v-6h2v6h-2zm-7-2h14v2H5z"/>
         </svg>`;
+    }
+
+    getGifIcon() {
+        return `<svg fill="white" viewBox="0 0 24 24" width="24px" height="24px"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M7,7H9V9H7V7M15,7H17V9H15V7M12,17.5C9.67,17.5 7.69,16.04 6.89,14H17.11C16.31,16.04 14.33,17.5 12,17.5Z"/></svg>`;
+    }
+
+    /**
+     * Show GIF preview dialog with positioning and sizing options
+     */
+    showGifPreviewDialog() {
+        const textInput = document.getElementById('textInput');
+        if (!textInput || !textInput.value.trim()) {
+            this.showError('Please enter some text first');
+            return;
+        }
+
+        // Create modal dialog
+        const modal = document.createElement('div');
+        modal.className = 'gif-preview-modal';
+        modal.innerHTML = `
+            <div class="gif-preview-content">
+                <div class="gif-preview-header">
+                    <h3>GIF Export Preview</h3>
+                    <button class="close-btn" aria-label="Close dialog">&times;</button>
+                </div>
+                <div class="gif-preview-body">
+                    <div class="gif-preview-canvas-container">
+                        <canvas id="gifPreviewCanvas" class="gif-preview-canvas"></canvas>
+                        <div class="gif-positioning-overlay"></div>
+                    </div>
+                    <div class="gif-controls">
+                        <div class="control-group">
+                            <label for="gifWidth">Width:</label>
+                            <input type="number" id="gifWidth" min="50" max="2000" value="400">
+                        </div>
+                        <div class="control-group">
+                            <label for="gifHeight">Height:</label>
+                            <input type="number" id="gifHeight" min="50" max="2000" value="200">
+                        </div>
+                        <div class="control-group">
+                            <label for="gifScale">Scale:</label>
+                            <input type="range" id="gifScale" min="0.1" max="5" step="0.1" value="1">
+                            <span class="scale-value">1.0x</span>
+                        </div>
+                        <div class="control-group">
+                            <label for="gifPosX">Position X:</label>
+                            <input type="number" id="gifPosX" min="0" max="2000" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label for="gifPosY">Position Y:</label>
+                            <input type="number" id="gifPosY" min="0" max="2000" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label for="gifScaling">Scaling Method:</label>
+                            <select id="gifScaling">
+                                <option value="nearest" selected>Nearest (Pixel Perfect)</option>
+                                <option value="linear">Linear (Smooth)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="gif-preview-footer">
+                    <button class="btn secondary" id="cancelGif">Cancel</button>
+                    <button class="btn primary" id="exportGif">Export GIF</button>
+                </div>
+            </div>
+        `;
+
+        // Add modal to page
+        document.body.appendChild(modal);
+
+        // Setup event listeners
+        this.setupGifPreviewListeners(modal);
+
+        // Initialize preview
+        this.updateGifPreview();
+    }
+
+    /**
+     * Setup event listeners for GIF preview dialog
+     */
+    setupGifPreviewListeners(modal) {
+        const closeBtn = modal.querySelector('.close-btn');
+        const cancelBtn = modal.querySelector('#cancelGif');
+        const exportBtn = modal.querySelector('#exportGif');
+        const controls = modal.querySelectorAll('input, select');
+
+        // Close dialog
+        const closeDialog = () => {
+            document.body.removeChild(modal);
+        };
+
+        closeBtn.addEventListener('click', closeDialog);
+        cancelBtn.addEventListener('click', closeDialog);
+
+        // Export GIF
+        exportBtn.addEventListener('click', () => {
+            this.exportGif();
+            closeDialog();
+        });
+
+        // Update preview on control changes
+        controls.forEach(control => {
+            control.addEventListener('input', () => {
+                this.updateGifPreview();
+                
+                // Update scale display
+                if (control.id === 'gifScale') {
+                    const scaleValue = modal.querySelector('.scale-value');
+                    scaleValue.textContent = `${parseFloat(control.value).toFixed(1)}x`;
+                }
+            });
+        });
+
+        // Close on backdrop click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeDialog();
+            }
+        });
+    }
+
+    /**
+     * Update GIF preview canvas
+     */
+    async updateGifPreview() {
+        const canvas = document.getElementById('gifPreviewCanvas');
+        const width = parseInt(document.getElementById('gifWidth')?.value || 400);
+        const height = parseInt(document.getElementById('gifHeight')?.value || 200);
+        const scale = parseFloat(document.getElementById('gifScale')?.value || 1);
+        const posX = parseInt(document.getElementById('gifPosX')?.value || 0);
+        const posY = parseInt(document.getElementById('gifPosY')?.value || 0);
+        const scaling = document.getElementById('gifScaling')?.value || 'nearest';
+
+        if (!canvas) return;
+
+        // Set canvas size
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        
+        // Set scaling method
+        ctx.imageSmoothingEnabled = scaling !== 'nearest';
+        if (ctx.imageSmoothingEnabled) {
+            ctx.imageSmoothingQuality = 'high';
+        }
+
+        // Clear canvas with background
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, width, height);
+
+        // Generate text image on temporary canvas
+        const tempCanvas = document.createElement('canvas');
+        const textInput = document.getElementById('textInput');
+        
+        if (textInput && textInput.value.trim()) {
+            await this.generateImage(textInput.value, tempCanvas, true);
+            
+            // Draw text image with positioning and scaling
+            const textWidth = tempCanvas.width * scale;
+            const textHeight = tempCanvas.height * scale;
+            
+            ctx.drawImage(
+                tempCanvas,
+                posX,
+                posY,
+                textWidth,
+                textHeight
+            );
+        }
+    }
+
+    /**
+     * Export GIF with current settings
+     */
+    async exportGif() {
+        this.setLoading(true);
+        
+        try {
+            // Get settings
+            const width = parseInt(document.getElementById('gifWidth')?.value || 400);
+            const height = parseInt(document.getElementById('gifHeight')?.value || 200);
+            const scale = parseFloat(document.getElementById('gifScale')?.value || 1);
+            const posX = parseInt(document.getElementById('gifPosX')?.value || 0);
+            const posY = parseInt(document.getElementById('gifPosY')?.value || 0);
+            const scaling = document.getElementById('gifScaling')?.value || 'nearest';
+
+            // Check if GIF.js is available
+            if (typeof GIF === 'undefined') {
+                // Fallback to PNG if GIF.js is not available
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+
+                // Set scaling method
+                ctx.imageSmoothingEnabled = scaling !== 'nearest';
+                if (ctx.imageSmoothingEnabled) {
+                    ctx.imageSmoothingQuality = 'high';
+                }
+
+                // Clear canvas with background
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, width, height);
+
+                // Generate text image
+                const tempCanvas = document.createElement('canvas');
+                const textInput = document.getElementById('textInput');
+                
+                if (textInput && textInput.value.trim()) {
+                    await this.generateImage(textInput.value, tempCanvas, true);
+                    
+                    // Draw text image with positioning and scaling
+                    const textWidth = tempCanvas.width * scale;
+                    const textHeight = tempCanvas.height * scale;
+                    
+                    ctx.drawImage(
+                        tempCanvas,
+                        posX,
+                        posY,
+                        textWidth,
+                        textHeight
+                    );
+                }
+
+                const dataUrl = canvas.toDataURL('image/png');
+                this.downloadFile(dataUrl, 'text-image.png');
+                this.showSuccess('Exported as PNG (GIF library not available)');
+                return;
+            }
+
+            // Create GIF using GIF.js
+            const gif = new GIF({
+                workers: 2,
+                quality: 10,
+                width: width,
+                height: height,
+                workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
+            });
+
+            // Create canvas for GIF frame
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+
+            // Set scaling method
+            ctx.imageSmoothingEnabled = scaling !== 'nearest';
+            if (ctx.imageSmoothingEnabled) {
+                ctx.imageSmoothingQuality = 'high';
+            }
+
+            // Clear canvas with background
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, width, height);
+
+            // Generate text image
+            const tempCanvas = document.createElement('canvas');
+            const textInput = document.getElementById('textInput');
+            
+            if (textInput && textInput.value.trim()) {
+                await this.generateImage(textInput.value, tempCanvas, true);
+                
+                // Draw text image with positioning and scaling
+                const textWidth = tempCanvas.width * scale;
+                const textHeight = tempCanvas.height * scale;
+                
+                ctx.drawImage(
+                    tempCanvas,
+                    posX,
+                    posY,
+                    textWidth,
+                    textHeight
+                );
+            }
+
+            // Add frame to GIF (static image for now)
+            gif.addFrame(canvas, {delay: 1000});
+
+            // Generate and download GIF
+            gif.on('finished', (blob) => {
+                const url = URL.createObjectURL(blob);
+                this.downloadFile(url, 'text-image.gif');
+                this.showSuccess('GIF exported successfully');
+                this.setLoading(false);
+            });
+
+            gif.on('progress', (progress) => {
+                // Could update progress indicator here
+                console.log('GIF generation progress:', progress);
+            });
+
+            gif.render();
+            
+        } catch (error) {
+            console.error('GIF export error:', error);
+            this.showError('Failed to export GIF');
+            this.setLoading(false);
+        }
     }
 }
 
