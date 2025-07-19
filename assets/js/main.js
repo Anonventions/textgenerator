@@ -65,8 +65,10 @@ class TextImageGenerator {
         // Add theme toggle button
         this.createThemeToggle();
         
-        // Add export buttons
-        this.createExportButtons();
+        // Add export buttons after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            this.createExportButtons();
+        }, 100);
         
         // Add loading indicator
         this.createLoadingIndicator();
@@ -94,26 +96,28 @@ class TextImageGenerator {
      * Create additional export buttons
      */
     createExportButtons() {
-        const downloadButton = document.querySelector('button[onclick="downloadImage()"]');
-        if (downloadButton) {
-            downloadButton.removeAttribute('onclick');
-            downloadButton.addEventListener('click', () => this.downloadImage('png'));
+        const buttonGroup = document.querySelector('.button-group');
+        if (buttonGroup) {
+            buttonGroup.innerHTML = `
+                <button class="export-btn primary" title="Download as PNG" aria-label="Download as PNG">
+                    ${this.getDownloadIcon()}
+                    PNG
+                </button>
+                <button class="export-btn secondary" title="Download as SVG" aria-label="Download as SVG">
+                    ${this.getSvgIcon()}
+                    SVG
+                </button>
+                <button class="export-btn secondary" title="Download as WebP" aria-label="Download as WebP">
+                    ${this.getImageIcon()}
+                    WebP
+                </button>
+            `;
             
-            // Create button group
-            const buttonGroup = document.createElement('div');
-            buttonGroup.className = 'button-group';
-            
-            // Move existing download button to group
-            downloadButton.parentNode.insertBefore(buttonGroup, downloadButton);
-            buttonGroup.appendChild(downloadButton);
-            
-            // Add SVG export button
-            const svgButton = this.createExportButton('SVG', this.getSvgIcon(), () => this.downloadImage('svg'));
-            buttonGroup.appendChild(svgButton);
-            
-            // Add WebP export button
-            const webpButton = this.createExportButton('WebP', this.getImageIcon(), () => this.downloadImage('webp'));
-            buttonGroup.appendChild(webpButton);
+            // Add event listeners
+            const buttons = buttonGroup.querySelectorAll('.export-btn');
+            buttons[0].addEventListener('click', () => this.downloadImage('png'));
+            buttons[1].addEventListener('click', () => this.downloadImage('svg'));
+            buttons[2].addEventListener('click', () => this.downloadImage('webp'));
         }
     }
 
@@ -642,11 +646,18 @@ class TextImageGenerator {
     }
 
     getSvgIcon() {
-        return `<svg fill="white" viewBox="0 0 24 24" width="45px" height="45px"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/></svg>`;
+        return `<svg fill="white" viewBox="0 0 24 24" width="24px" height="24px"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/></svg>`;
     }
 
     getImageIcon() {
-        return `<svg fill="white" viewBox="0 0 24 24" width="45px" height="45px"><path d="M8.5,13.5L11,16.5L14.5,12L19,18H5M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19Z"/></svg>`;
+        return `<svg fill="white" viewBox="0 0 24 24" width="24px" height="24px"><path d="M8.5,13.5L11,16.5L14.5,12L19,18H5M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19Z"/></svg>`;
+    }
+
+    getDownloadIcon() {
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="24px" height="24px">
+            <path d="M0 0h24v24H0z" fill="none"/>
+            <path d="M19 9h-4V3H9v6H5l7 7 7-7zm-7 13v-6h2v6h-2zm-7-2h14v2H5z"/>
+        </svg>`;
     }
 }
 
