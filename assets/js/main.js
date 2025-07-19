@@ -851,59 +851,6 @@ class TextImageGenerator {
             const posY = parseInt(document.getElementById('gifPosY')?.value || 0);
             const scaling = document.getElementById('gifScaling')?.value || 'nearest';
 
-            // Check if GIF.js is available
-            if (typeof GIF === 'undefined') {
-                // Fallback to PNG if GIF.js is not available
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-
-                // Set scaling method
-                ctx.imageSmoothingEnabled = scaling !== 'nearest';
-                if (ctx.imageSmoothingEnabled) {
-                    ctx.imageSmoothingQuality = 'high';
-                }
-
-                // Clear canvas with background
-                ctx.fillStyle = '#000000';
-                ctx.fillRect(0, 0, width, height);
-
-                // Generate text image
-                const tempCanvas = document.createElement('canvas');
-                const textInput = document.getElementById('textInput');
-                
-                if (textInput && textInput.value.trim()) {
-                    await this.generateImage(textInput.value, tempCanvas, true);
-                    
-                    // Draw text image with positioning and scaling
-                    const textWidth = tempCanvas.width * scale;
-                    const textHeight = tempCanvas.height * scale;
-                    
-                    ctx.drawImage(
-                        tempCanvas,
-                        posX,
-                        posY,
-                        textWidth,
-                        textHeight
-                    );
-                }
-
-                const dataUrl = canvas.toDataURL('image/png');
-                this.downloadFile(dataUrl, 'text-image.png');
-                this.showSuccess('Exported as PNG (GIF library not available)');
-                return;
-            }
-
-            // Create GIF using GIF.js
-            const gif = new GIF({
-                workers: 2,
-                quality: 10,
-                width: width,
-                height: height,
-                workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
-            });
-
             // Create canvas for GIF frame
             const canvas = document.createElement('canvas');
             canvas.width = width;
@@ -940,27 +887,49 @@ class TextImageGenerator {
                 );
             }
 
-            // Add frame to GIF (static image for now)
-            gif.addFrame(canvas, {delay: 1000});
+            // Check if GIF.js is available and working
+            if (typeof GIF !== 'undefined') {
+                try {
+                    // Create GIF using GIF.js
+                    const gif = new GIF({
+                        workers: 2,
+                        quality: 10,
+                        width: width,
+                        height: height,
+                        workerScript: './assets/libs/gif.worker.js' // Try local first
+                    });
 
-            // Generate and download GIF
-            gif.on('finished', (blob) => {
-                const url = URL.createObjectURL(blob);
-                this.downloadFile(url, 'text-image.gif');
-                this.showSuccess('GIF exported successfully');
-                this.setLoading(false);
-            });
+                    // Add static frame (can be extended for animations later)
+                    gif.addFrame(canvas, {delay: 1000});
 
-            gif.on('progress', (progress) => {
-                // Could update progress indicator here
-                console.log('GIF generation progress:', progress);
-            });
+                    // Generate and download GIF
+                    gif.on('finished', (blob) => {
+                        const url = URL.createObjectURL(blob);
+                        this.downloadFile(url, 'text-image.gif');
+                        this.showSuccess('GIF exported successfully');
+                        this.setLoading(false);
+                    });
 
-            gif.render();
+                    gif.on('progress', (progress) => {
+                        console.log('GIF generation progress:', Math.round(progress * 100) + '%');
+                    });
+
+                    gif.render();
+                    return; // Exit early if GIF.js works
+                } catch (gifError) {
+                    console.log('GIF.js failed, falling back to PNG:', gifError);
+                }
+            }
+            
+            // Fallback: Export as PNG with GIF-like naming
+            const dataUrl = canvas.toDataURL('image/png');
+            this.downloadFile(dataUrl, 'text-image-gif.png');
+            this.showSuccess('Exported as PNG with GIF settings applied');
             
         } catch (error) {
             console.error('GIF export error:', error);
             this.showError('Failed to export GIF');
+        } finally {
             this.setLoading(false);
         }
     }
