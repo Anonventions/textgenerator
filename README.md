@@ -1,9 +1,10 @@
-# Text Image Generator 🖼️
+# Blockbench Plugin: Minecraft Rank Text Generator (2D Pixelart) 🖼️
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
+![Blockbench](https://img.shields.io/badge/Blockbench-4.0%2B-orange)
 
-**Text Image Generator** is a lightweight, client‑side web application that transforms plain text into crisp bitmap images. Choose from 29 unique pixel fonts, tweak letter‑spacing in real time, preview the result on‑canvas, and export in the format that best suits your workflow.
+**Minecraft Rank Text Generator** is a Blockbench plugin that creates professional 2D pixelart Minecraft rank displays using custom alphabet PNG textures. Generate pixel-perfect rank graphics with 30 built-in fonts, color customization, borders, and export to PNG or .bbmodel format.
 
 ---
 
