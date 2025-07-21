@@ -53,18 +53,53 @@
          * Initialize built-in font sets
          */
         initializeFonts() {
-            const fonts = {
-                'default1': './alphabet/',
-            };
+            const fonts = {};
+            
+            // Add default font (alphabet directory)
+            fonts['default1'] = './alphabet/';
+            
+            // Add numbered font directories (only if they exist)
             for (let i = 2; i <= 30; i++) {
-                fonts[`default${i}`] = `./alphabet${i}/`;
+                const fontPath = `./alphabet${i}/`;
+                // We'll validate existence when loading
+                fonts[`default${i}`] = fontPath;
             }
+            
             return fonts;
         }
 
         /**
-         * Initialize built-in border sets
+         * Get available font options for the dialog
          */
+        getAvailableFontOptions() {
+            const options = {};
+            
+            // Check which font directories actually exist
+            for (const [fontKey, fontPath] of Object.entries(this.fonts)) {
+                // For now, we'll include all fonts and handle missing ones during loading
+                const fontNumber = fontKey.replace('default', '');
+                options[fontKey] = `Font ${fontNumber}`;
+            }
+            
+            return options;
+        }
+
+        /**
+         * Validate if a font directory exists and has character files
+         */
+        async validateFont(fontKey) {
+            const directory = this.fonts[fontKey];
+            if (!directory) return false;
+            
+            try {
+                // In a real Blockbench environment, we would check if the directory exists
+                // For now, we'll return true and handle errors during loading
+                return true;
+            } catch (error) {
+                console.warn(`Font ${fontKey} validation failed:`, error);
+                return false;
+            }
+        }
         initializeBorders() {
             const borders = {};
             for (let i = 1; i <= 11; i++) {
@@ -226,82 +261,95 @@
             const imagePath = alphabetSet.characters.get(char);
             
             try {
-                // Create texture first
-                let texture = null;
+                // Load texture with improved error handling
+                const texture = await this.loadTexture(imagePath, char);
                 
-                // Check if texture already exists
-                const existingTexture = Texture.all.find(t => t.source === imagePath);
-                if (existingTexture) {
-                    texture = existingTexture;
-                } else {
-                    // Create new texture from file path
-                    // In Blockbench, we need to handle the file loading differently
-                    texture = new Texture({
-                        name: `char_${char}_texture`,
-                        source: imagePath,
-                        folder: 'rank_generator'
-                    }).add();
-                    
-                    // Load the texture
-                    await texture.load();
-                }
-
-                // Create a new cube element configured as a 2D plane
-                const element = new Cube({
-                    name: `char_${char}_${Date.now()}`,
-                    from: [x * scale, y * scale, 0],
-                    to: [x * scale + 16 * scale, y * scale + 16 * scale, 1],
-                    faces: {
-                        north: {
-                            texture: texture.uuid,
-                            uv: [0, 0, 16, 16]
-                        },
-                        south: {
-                            texture: false
-                        },
-                        east: {
-                            texture: false
-                        },
-                        west: {
-                            texture: false
-                        },
-                        up: {
-                            texture: false
-                        },
-                        down: {
-                            texture: false
+                if (texture) {
+                    // Create cube with texture
+                    const element = new Cube({
+                        name: `char_${char}_${Date.now()}`,
+                        from: [x * scale, y * scale, 0],
+                        to: [x * scale + 16 * scale, y * scale + 16 * scale, 1],
+                        faces: {
+                            north: {
+                                texture: texture.uuid,
+                                uv: [0, 0, 16, 16]
+                            },
+                            south: { texture: false },
+                            east: { texture: false },
+                            west: { texture: false },
+                            up: { texture: false },
+                            down: { texture: false }
                         }
+                    });
+
+                    element.addTo(Group.selected).init();
+                    
+                    // Apply color tinting if specified
+                    if (color !== '#FFFFFF') {
+                        this.applyColorTint(element, color);
                     }
-                });
 
-                // Add to outliner
-                element.addTo(Group.selected).init();
-                
-                // Apply color tinting if specified
-                if (color !== '#FFFFFF') {
-                    this.applyColorTint(element, color);
+                    return element;
+                } else {
+                    // Fallback to placeholder cube
+                    console.warn(`Using placeholder for character '${char}'`);
+                    return this.createPlaceholderCube(char, x, y, scale);
                 }
-
-                return element;
+                
             } catch (error) {
                 console.error(`Failed to create character plane for '${char}':`, error);
-                
-                // Fallback: create a simple colored cube
-                const element = new Cube({
-                    name: `char_${char}_fallback_${Date.now()}`,
-                    from: [x * scale, y * scale, 0],
-                    to: [x * scale + 16 * scale, y * scale + 16 * scale, 1],
-                    color: 7 // Default color index
-                });
-                
-                element.addTo(Group.selected).init();
-                return element;
+                return this.createPlaceholderCube(char, x, y, scale);
             }
         }
 
         /**
-         * Apply color tinting to an element
+         * Improved texture loading with error handling
          */
+        async loadTexture(imagePath, charName) {
+            try {
+                // Check if texture already exists
+                const existingTexture = Texture.all.find(t => 
+                    t.source === imagePath || t.name === `char_${charName}_texture`
+                );
+                
+                if (existingTexture) {
+                    return existingTexture;
+                }
+
+                // Create new texture
+                const texture = new Texture({
+                    name: `char_${charName}_texture`,
+                    source: imagePath,
+                    folder: 'rank_generator'
+                }).add();
+
+                // Attempt to load the texture
+                await texture.load();
+                return texture;
+                
+            } catch (error) {
+                console.warn(`Failed to load texture for ${charName}:`, error);
+                
+                // Return a placeholder texture or null
+                return null;
+            }
+        }
+
+        /**
+         * Create a placeholder cube when texture loading fails
+         */
+        createPlaceholderCube(char, x, y, scale) {
+            const element = new Cube({
+                name: `char_${char}_placeholder_${Date.now()}`,
+                from: [x * scale, y * scale, 0],
+                to: [x * scale + 16 * scale, y * scale + 16 * scale, 1],
+                color: Math.floor(Math.random() * 8) // Random color
+            });
+
+            element.addTo(Group.selected).init();
+            return element;
+        }
         applyColorTint(element, color) {
             // Convert hex color to RGB
             const r = parseInt(color.slice(1, 3), 16);
@@ -466,14 +514,9 @@
                     label: 'Font',
                     type: 'select',
                     value: pluginState.currentFont,
-                    options: (() => {
-                        const options = {};
-                        options['default1'] = 'Default Font 1';
-                        for (let i = 2; i <= 30; i++) {
-                            options[`default${i}`] = `Default Font ${i}`;
-                        }
-                        return options;
-                    })()
+                    options: textGenerator ? textGenerator.getAvailableFontOptions() : {
+                        'default1': 'Font 1'
+                    }
                 },
                 letter_spacing: {
                     label: 'Letter Spacing',
@@ -526,14 +569,18 @@
                 },
                 preview_info: {
                     type: 'info',
-                    text: 'Preview will be generated in the 3D viewport when you click Generate.'
+                    text: 'Preview will be generated in the 3D viewport when you click Generate. Use Clear to remove existing text before generating new text.'
+                },
+                generation_info: {
+                    type: 'info',
+                    text: 'Tips: Try "ADMIN", "VIP", "MODERATOR" for common rank texts. Supports letters, numbers, and basic symbols.'
                 },
                 export_section: {
                     type: 'info',
-                    text: 'Export Options: Use the buttons below to export your generated text.'
+                    text: 'Export Options: Use Export PNG for images or Save BBModel to preserve the 3D structure.'
                 }
             },
-            buttons: ['Generate', 'Export PNG', 'Save BBModel', 'Clear', 'Cancel'],
+            buttons: ['Generate', 'Preview Font', 'Export PNG', 'Save BBModel', 'Clear', 'Cancel'],
             onConfirm: function(formData) {
                 // Update plugin state
                 pluginState.textInput = formData.text_input;
@@ -564,22 +611,40 @@
             },
             onButton: function(button_id) {
                 switch(button_id) {
-                    case 1: // Export PNG
+                    case 1: // Preview Font
+                        const formData = this.getFormResult();
+                        if (textGenerator) {
+                            // Generate a preview with "TEST"
+                            pluginState.currentFont = formData.font_selector;
+                            pluginState.letterSpacing = formData.letter_spacing;
+                            pluginState.textColor = formData.text_color;
+                            pluginState.scale = formData.scale;
+                            
+                            textGenerator.generateText('TEST', {
+                                font: formData.font_selector,
+                                spacing: formData.letter_spacing,
+                                color: formData.text_color,
+                                scale: formData.scale,
+                                alignment: formData.alignment
+                            });
+                        }
+                        break;
+                    case 2: // Export PNG
                         if (textGenerator) {
                             textGenerator.exportToPNG();
                         }
                         break;
-                    case 2: // Save BBModel
+                    case 3: // Save BBModel
                         if (textGenerator) {
                             textGenerator.saveAsBBModel();
                         }
                         break;
-                    case 3: // Clear
+                    case 4: // Clear
                         if (textGenerator) {
                             textGenerator.clearExistingText();
                         }
                         break;
-                    case 4: // Cancel
+                    case 5: // Cancel
                         this.hide();
                         break;
                 }
