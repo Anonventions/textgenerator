@@ -6,8 +6,14 @@
 class TextImageGenerator {
     constructor() {
         this.fonts = this.initializeFonts();
+        this.borders = this.initializeBorders();
         this.currentFont = 'default1';
+        this.currentBorder = 'none';
+        this.textColor = '#ffffff';
+        this.borderColor = '#61dafb';
+        this.enableBorders = false;
         this.imageCache = new Map();
+        this.borderCache = new Map();
         this.letterSpacing = 10;
         this.isLoading = false;
         this.theme = this.getInitialTheme();
@@ -35,8 +41,17 @@ class TextImageGenerator {
     }
 
     /**
-     * Initialize font configuration
+     * Initialize border configuration
      */
+    initializeBorders() {
+        const borders = {
+            'none': null,
+        };
+        for (let i = 1; i <= 11; i++) {
+            borders[`border${i}`] = `./border${i}/`;
+        }
+        return borders;
+    }
     initializeFonts() {
         const fonts = {
             'default1': './alphabet/',
@@ -51,6 +66,7 @@ class TextImageGenerator {
      * Setup DOM elements and populate font selector
      */
     setupDOM() {
+        // Setup font selector
         const selectElement = document.getElementById('fontInput');
         if (selectElement) {
             Object.keys(this.fonts).forEach((key, index) => {
@@ -60,6 +76,18 @@ class TextImageGenerator {
                 selectElement.appendChild(option);
             });
             selectElement.value = this.currentFont;
+        }
+
+        // Setup border selector
+        const borderSelector = document.getElementById('borderSelector');
+        if (borderSelector) {
+            Object.keys(this.borders).forEach((key, index) => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.text = key === 'none' ? 'No Border' : `Border ${index}`;
+                borderSelector.appendChild(option);
+            });
+            borderSelector.value = this.currentBorder;
         }
 
         // Add theme toggle button
@@ -154,6 +182,12 @@ class TextImageGenerator {
         const textInput = document.getElementById('textInput');
         const fontInput = document.getElementById('fontInput');
         const spacingInput = document.getElementById('spacingInput');
+        const textColorInput = document.getElementById('textColorInput');
+        const borderColorInput = document.getElementById('borderColorInput');
+        const borderSelector = document.getElementById('borderSelector');
+        const enableBordersCheckbox = document.getElementById('enableBorders');
+        const fontUpload = document.getElementById('fontUpload');
+        const borderUpload = document.getElementById('borderUpload');
 
         if (textInput) {
             textInput.addEventListener('input', () => this.updatePreview());
@@ -166,6 +200,42 @@ class TextImageGenerator {
 
         if (spacingInput) {
             spacingInput.addEventListener('input', () => this.updateSpacing());
+        }
+
+        if (textColorInput) {
+            textColorInput.addEventListener('input', (e) => {
+                this.textColor = e.target.value;
+                this.updatePreview();
+            });
+        }
+
+        if (borderColorInput) {
+            borderColorInput.addEventListener('input', (e) => {
+                this.borderColor = e.target.value;
+                this.updatePreview();
+            });
+        }
+
+        if (borderSelector) {
+            borderSelector.addEventListener('change', (e) => {
+                this.currentBorder = e.target.value;
+                this.updatePreview();
+            });
+        }
+
+        if (enableBordersCheckbox) {
+            enableBordersCheckbox.addEventListener('change', (e) => {
+                this.enableBorders = e.target.checked;
+                this.updatePreview();
+            });
+        }
+
+        if (fontUpload) {
+            fontUpload.addEventListener('change', (e) => this.handleFontUpload(e));
+        }
+
+        if (borderUpload) {
+            borderUpload.addEventListener('change', (e) => this.handleBorderUpload(e));
         }
 
         // Error handling for failed image loads
@@ -286,7 +356,74 @@ class TextImageGenerator {
     }
 
     /**
-     * Load image with caching and error handling
+     * Load border image with caching
+     */
+    async loadBorderImage(type) {
+        if (this.currentBorder === 'none' || !this.borders[this.currentBorder]) {
+            return null;
+        }
+
+        const cacheKey = `${this.currentBorder}-${type}`;
+        
+        // Return cached image if available
+        if (this.borderCache.has(cacheKey)) {
+            return this.borderCache.get(cacheKey);
+        }
+
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            
+            const timeout = setTimeout(() => {
+                reject(new Error(`Timeout loading border ${type}`));
+            }, 5000);
+            
+            img.onload = () => {
+                clearTimeout(timeout);
+                this.borderCache.set(cacheKey, img);
+                resolve(img);
+            };
+            
+            img.onerror = () => {
+                clearTimeout(timeout);
+                console.warn(`Failed to load border ${type}`);
+                resolve(null); // Return null instead of rejecting
+            };
+            
+            // Check if this is a custom border with direct URLs
+            const borderPath = this.borders[this.currentBorder];
+            if (typeof borderPath === 'object' && borderPath[type]) {
+                img.src = borderPath[type];
+            } else if (typeof borderPath === 'string') {
+                img.src = `${borderPath}1_${type}.png`;
+            } else {
+                resolve(null);
+                return;
+            }
+        });
+    }
+
+    /**
+     * Apply color filter to image
+     */
+    applyColorFilter(image, color) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = image.width;
+        canvas.height = image.height;
+
+        // Draw original image
+        ctx.drawImage(image, 0, 0);
+
+        // Apply color overlay while preserving alpha and shading
+        ctx.globalCompositeOperation = 'source-atop';
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        return canvas;
+    }
+    /**
+     * Load image with support for custom uploads
      */
     async loadImage(letter) {
         const cacheKey = `${this.currentFont}-${letter}`;
@@ -316,7 +453,13 @@ class TextImageGenerator {
                 reject(new Error(`Failed to load image for letter: ${letter}`));
             };
             
-            img.src = `${this.fonts[this.currentFont]}${letter.toLowerCase()}.png`;
+            // Check if this is a custom font with direct URLs
+            const fontPath = this.fonts[this.currentFont];
+            if (typeof fontPath === 'object' && fontPath[letter]) {
+                img.src = fontPath[letter];
+            } else {
+                img.src = `${fontPath}${letter.toLowerCase()}.png`;
+            }
         });
     }
 
@@ -365,7 +508,7 @@ class TextImageGenerator {
     }
 
     /**
-     * Generate image with optimization
+     * Generate image with optimization, colors, and borders
      */
     async generateImage(text, canvas, isDownload = false) {
         if (!text.trim()) {
@@ -385,13 +528,27 @@ class TextImageGenerator {
                 return;
             }
 
-            // Load all images first
+            // Load all text images first
             const imagePromises = letters.map(letter => this.loadImage(letter));
             const images = await Promise.allSettled(imagePromises);
             
-            // Calculate dimensions
-            let totalWidth = 0;
-            let maxHeight = 0;
+            // Load border images if enabled
+            let borderStart = null, borderMiddle = null, borderEnd = null;
+            if (this.enableBorders && this.currentBorder !== 'none') {
+                const borderPromises = [
+                    this.loadBorderImage('start'),
+                    this.loadBorderImage('middle'),
+                    this.loadBorderImage('end')
+                ];
+                const borderResults = await Promise.allSettled(borderPromises);
+                borderStart = borderResults[0].status === 'fulfilled' ? borderResults[0].value : null;
+                borderMiddle = borderResults[1].status === 'fulfilled' ? borderResults[1].value : null;
+                borderEnd = borderResults[2].status === 'fulfilled' ? borderResults[2].value : null;
+            }
+
+            // Calculate dimensions for text
+            let totalTextWidth = 0;
+            let maxTextHeight = 0;
             
             const validImages = images
                 .map((result, index) => ({ 
@@ -401,8 +558,8 @@ class TextImageGenerator {
                 .filter(({ result }) => result.status === 'fulfilled')
                 .map(({ result, letter }) => {
                     const img = result.value;
-                    totalWidth += img.width + this.letterSpacing;
-                    maxHeight = Math.max(maxHeight, img.height);
+                    totalTextWidth += img.width + this.letterSpacing;
+                    maxTextHeight = Math.max(maxTextHeight, img.height);
                     return { img, letter };
                 });
 
@@ -411,21 +568,73 @@ class TextImageGenerator {
             }
 
             // Remove final spacing
-            totalWidth -= this.letterSpacing;
+            totalTextWidth -= this.letterSpacing;
+
+            // Calculate total dimensions including borders
+            let totalWidth = totalTextWidth;
+            let totalHeight = maxTextHeight;
+            let textOffsetX = 0;
+            let textOffsetY = 0;
+
+            if (this.enableBorders && borderStart && borderEnd) {
+                totalWidth = borderStart.width + totalTextWidth + borderEnd.width;
+                if (borderMiddle && totalTextWidth > 0) {
+                    const middleCount = Math.max(0, Math.ceil(totalTextWidth / borderMiddle.width) - 1);
+                    totalWidth = borderStart.width + (middleCount * borderMiddle.width) + borderEnd.width;
+                }
+                totalHeight = Math.max(totalHeight, borderStart.height, borderEnd.height);
+                if (borderMiddle) {
+                    totalHeight = Math.max(totalHeight, borderMiddle.height);
+                }
+                textOffsetX = borderStart.width;
+                textOffsetY = Math.max(0, (totalHeight - maxTextHeight) / 2);
+            }
 
             // Set canvas size
             canvas.width = Math.max(totalWidth, 1);
-            canvas.height = Math.max(maxHeight, 1);
+            canvas.height = Math.max(totalHeight, 1);
 
-            // Clear canvas
+            // Clear canvas with transparent background
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw images using requestAnimationFrame for smooth rendering
+            // Draw borders first (if enabled)
+            if (this.enableBorders && borderStart && borderEnd) {
+                // Apply color filter to borders
+                const coloredBorderStart = this.applyColorFilter(borderStart, this.borderColor);
+                const coloredBorderEnd = this.applyColorFilter(borderEnd, this.borderColor);
+                
+                // Draw start border
+                ctx.drawImage(coloredBorderStart, 0, 0);
+                
+                // Draw middle borders
+                if (borderMiddle && totalTextWidth > 0) {
+                    const coloredBorderMiddle = this.applyColorFilter(borderMiddle, this.borderColor);
+                    let middleX = borderStart.width;
+                    const endX = canvas.width - borderEnd.width;
+                    
+                    while (middleX < endX) {
+                        const remainingWidth = endX - middleX;
+                        const drawWidth = Math.min(borderMiddle.width, remainingWidth);
+                        if (drawWidth > 0) {
+                            ctx.drawImage(coloredBorderMiddle, 0, 0, drawWidth, borderMiddle.height, 
+                                        middleX, 0, drawWidth, borderMiddle.height);
+                        }
+                        middleX += drawWidth;
+                    }
+                }
+                
+                // Draw end border
+                ctx.drawImage(coloredBorderEnd, canvas.width - borderEnd.width, 0);
+            }
+
+            // Draw text images on top using requestAnimationFrame for smooth rendering
             await new Promise(resolve => {
                 requestAnimationFrame(() => {
-                    let x = 0;
+                    let x = textOffsetX;
                     validImages.forEach(({ img }) => {
-                        ctx.drawImage(img, x, 0, img.width, img.height);
+                        // Apply color filter to text
+                        const coloredImg = this.applyColorFilter(img, this.textColor);
+                        ctx.drawImage(coloredImg, x, textOffsetY, img.width, img.height);
                         x += img.width + this.letterSpacing;
                     });
                     resolve();
@@ -478,6 +687,107 @@ class TextImageGenerator {
         } catch (error) {
             console.error('Download error:', error);
             this.showError('Failed to download image');
+        } finally {
+            this.setLoading(false);
+        }
+    }
+
+    /**
+     * Handle font folder upload
+     */
+    async handleFontUpload(event) {
+        const files = Array.from(event.target.files);
+        if (files.length === 0) return;
+
+        try {
+            this.setLoading(true);
+            
+            // Create a new custom font entry
+            const fontName = `custom_${Date.now()}`;
+            
+            // Store files in memory for this session
+            const fontData = {};
+            for (const file of files) {
+                if (file.type === 'image/png') {
+                    const fileName = file.name.replace('.png', '').toLowerCase();
+                    if (fileName.match(/^[a-z]$/)) {
+                        const objectUrl = URL.createObjectURL(file);
+                        fontData[fileName] = objectUrl;
+                    }
+                }
+            }
+            
+            if (Object.keys(fontData).length > 0) {
+                // Add to fonts list
+                this.fonts[fontName] = fontData;
+                
+                // Update font selector
+                const fontSelector = document.getElementById('fontInput');
+                const option = document.createElement('option');
+                option.value = fontName;
+                option.text = `Custom Font ${Object.keys(this.fonts).length}`;
+                fontSelector.appendChild(option);
+                
+                this.showSuccess(`Custom font uploaded with ${Object.keys(fontData).length} letters`);
+            } else {
+                this.showError('No valid letter images found in upload');
+            }
+            
+        } catch (error) {
+            console.error('Font upload error:', error);
+            this.showError('Failed to upload font');
+        } finally {
+            this.setLoading(false);
+        }
+    }
+
+    /**
+     * Handle border folder upload
+     */
+    async handleBorderUpload(event) {
+        const files = Array.from(event.target.files);
+        if (files.length === 0) return;
+
+        try {
+            this.setLoading(true);
+            
+            // Create a new custom border entry
+            const borderName = `custom_border_${Date.now()}`;
+            
+            // Store files in memory for this session
+            const borderData = {};
+            for (const file of files) {
+                if (file.type === 'image/png') {
+                    const fileName = file.name.toLowerCase();
+                    if (fileName.includes('start') || fileName.includes('_start')) {
+                        borderData.start = URL.createObjectURL(file);
+                    } else if (fileName.includes('middle') || fileName.includes('_middle')) {
+                        borderData.middle = URL.createObjectURL(file);
+                    } else if (fileName.includes('end') || fileName.includes('_end')) {
+                        borderData.end = URL.createObjectURL(file);
+                    }
+                }
+            }
+            
+            if (borderData.start && borderData.end) {
+                // Add to borders list
+                this.borders[borderName] = borderData;
+                
+                // Update border selector
+                const borderSelector = document.getElementById('borderSelector');
+                const option = document.createElement('option');
+                option.value = borderName;
+                option.text = `Custom Border ${Object.keys(this.borders).length}`;
+                borderSelector.appendChild(option);
+                
+                this.showSuccess('Custom border uploaded successfully');
+            } else {
+                this.showError('Border folder must contain start and end pieces');
+            }
+            
+        } catch (error) {
+            console.error('Border upload error:', error);
+            this.showError('Failed to upload border');
         } finally {
             this.setLoading(false);
         }

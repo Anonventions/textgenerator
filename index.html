@@ -80,6 +80,45 @@
             <select id="fontInput" class="font-selector" aria-label="Select font style"></select>
         </div>
 
+        <!-- Color and Border Controls -->
+        <div class="controls-container">
+            <div class="color-controls">
+                <div class="control-group">
+                    <label for="textColorInput" class="control-label">Text Color:</label>
+                    <input type="color" id="textColorInput" value="#ffffff" class="color-picker">
+                </div>
+                <div class="control-group">
+                    <label for="borderColorInput" class="control-label">Border Color:</label>
+                    <input type="color" id="borderColorInput" value="#61dafb" class="color-picker">
+                </div>
+            </div>
+            <div class="border-controls">
+                <div class="control-group">
+                    <label for="borderSelector" class="control-label">Choose Border:</label>
+                    <select id="borderSelector" class="border-selector" aria-label="Select border style">
+                        <option value="none">No Border</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="enableBorders" class="control-label">
+                        <input type="checkbox" id="enableBorders"> Enable Borders
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Controls -->
+        <div class="upload-container">
+            <div class="upload-group">
+                <label for="fontUpload" class="control-label">Upload Font Folder:</label>
+                <input type="file" id="fontUpload" webkitdirectory directory class="file-upload" accept="image/png">
+            </div>
+            <div class="upload-group">
+                <label for="borderUpload" class="control-label">Upload Border Folder:</label>
+                <input type="file" id="borderUpload" webkitdirectory directory class="file-upload" accept="image/png">
+            </div>
+        </div>
+
         <!-- Main content -->
         <div class="container">
             <h1>ANONVENTIONS</h1>
